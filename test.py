@@ -1,5 +1,16 @@
-import requests
+from kubernetes import client, config
 
-url = 'https://your.kube-url.com/api/v1/namespaces/kube-system/services/http:heapster:/proxy/apis/metrics/v1alpha1/namespaces/default/pods'
-headers = {'authorization': ''}
-print(requests.get(url, headers=headers).json())
+
+def main():
+    # Configs can be set in Configuration class directly or using helper
+    # utility. If no argument provided, the config will be loaded from
+    # default location.
+    config.load_kube_config()
+
+    v1 = client.CoreV1Api()
+    print("Listing pods with their IPs:")
+    ret = v1.list_pod_for_all_namespaces(watch=False)
+    for i in ret.items:
+
+        print("%s\t%s\t%s" %
+              (i.status.pod_ip, i.metadata.namespace, i.metadata.name))
