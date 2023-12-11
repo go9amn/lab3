@@ -1,9 +1,5 @@
-from kubernetes import client, config
+import requests
 
-config.load_kube_config()
-
-api = client.CoreV1Api()
-
-for item in api.list_node().items:
-    node = api.read_node(name=item.metadata.name)
-    print(node.get('status'))
+url = 'https://your.kube-url.com/api/v1/namespaces/kube-system/services/http:heapster:/proxy/apis/metrics/v1alpha1/namespaces/default/pods'
+headers = {'authorization': ''}
+print(requests.get(url, headers=headers).json())
