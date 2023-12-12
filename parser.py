@@ -1,3 +1,4 @@
+import time
 import datetime
 import os
 import json
@@ -23,13 +24,13 @@ def get_stats_by_time() -> list:
     after = datetime.datetime.now().minute + 5
     while now < after:
         stat = get_stats()
-        data.append(stat.append(
-                f'{datetime.datetime.now().time().minute}:{datetime.datetime.now().time().second}',
-            )
-        )
+        stat.append(f'{datetime.datetime.now().time().minute}:{datetime.datetime.now().time().second}',)
+        data.append(stat)
         now = datetime.datetime.now().minute
         print(stat)
-        return data
+        time.sleep(1)
+
+    return data
 
 
 def write_stats_to_json() -> None:
