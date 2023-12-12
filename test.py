@@ -1,5 +1,6 @@
 from kubernetes import client, config
 
+
 def get_node_resources(node_name):
     try:
         # Загрузка конфигурации Kubernetes из текущего контекста
@@ -27,6 +28,7 @@ def get_node_resources(node_name):
     except Exception as e:
         print(f"Exception: {e}")
         return None
+
 
 if __name__ == '__main__':
     node_name = 'worker1'  # Замените на имя вашей ноды
