@@ -1,40 +1,37 @@
-from kubernetes import client, config
+import datetime
+import matplotlib.pyplot as plt
+import psutil
+import json
 
-def get_node_load(node_name):
-    try:
-        # Загрузка конфигурации Kubernetes из текущего контекста
-        config.load_kube_config()
 
-        # Создание объекта для взаимодействия с API Kubernetes
-        v1 = client.CoreV1Api()
+def get_resources() -> list:
+    data = []
+    now = datetime.datetime.now().second
+    after = datetime.datetime.now().second + 20
+    while now < after:
+        date = f'{datetime.datetime.now().time().minute}.{datetime.datetime.now().time().second}'
+        data.append({'time': date, 'cpu': psutil.cpu_percent(3), 'ram': psutil.virtual_memory().used / pow(1024, 2)})
+        now = datetime.datetime.now().minute
+        print(now)
+        return data
 
-        # Получение информации о ноде
-        node = v1.read_node(name=node_name)
 
-        # Извлечение ресурсов CPU
-        capacity_cpu = node.status.capacity.get('cpu', 1.0)  # По умолчанию 1.0, если не удалось получить значение
-        usage_cpu = node.status.allocatable.get('cpu', 0.0)
+def write_to_json(data):
+    with open('outout.json', 'w') as file:
+        json.dump(data, file)
 
-        # Расчет приблизительной нагрузки на CPU в процентах
-        cpu_load_percentage = (usage_cpu / capacity_cpu) * 100.0
 
-        # Извлечение ресурсов памяти
-        capacity_memory = node.status.capacity.get('memory', 'N/A')
-        usage_memory = node.status.allocatable.get('memory', 'N/A')
+def get_from_json() -> list:
+    with open('outout.json', 'r', encoding='utf-8') as file:
+        data = json.load(file)
+        return data
 
-        return {'cpu_load_percentage': cpu_load_percentage,
-                'memory_capacity': capacity_memory, 'memory_usage': usage_memory}
 
-    except Exception as e:
-        print(f"Exception: {e}")
-        return None
+def graph_from_json(file: json):
+    pass
+
 
 if __name__ == '__main__':
-    node_name = 'worker1'  # Замените на имя вашей ноды
-
-    node_load = get_node_load(node_name)
-    if node_load:
-        print(f"Нагрузка на ноде {node_name}:")
-        print(f"CPU Load Percentage: {node_load['cpu_load_percentage']:.2f}%")
-        print(f"Memory Capacity: {node_load['memory_capacity']}")
-        print(f"Memory Usage: {node_load['memory_usage']}")
+    #output_data = get_resources()
+    #write_to_json(output_data)
+    print(get_from_json())
