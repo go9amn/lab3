@@ -1,33 +1,40 @@
 from kubernetes import client, config
 
-def get_pod_resources(namespace, pod_name):
-    # Загрузка конфигурации Kubernetes из текущего контекста
-    config.load_kube_config()
-
-    # Создание объекта для взаимодействия с API Kubernetes
-    v1 = client.CoreV1Api()
-
+def get_node_resources(node_name):
     try:
-        # Получение информации о поде
-        pod = v1.read_namespaced_pod(name=pod_name, namespace=namespace)
+        # Загрузка конфигурации Kubernetes из текущего контекста
+        config.load_kube_config()
 
-        # Получение ресурсов CPU и памяти из спецификации пода
-        cpu = pod.spec.containers[0].resources.requests['cpu']
-        memory = pod.spec.containers[0].resources.requests['memory']
+        # Создание объекта для взаимодействия с API Kubernetes
+        v1 = client.CoreV1Api()
 
-        return {'cpu': cpu, 'memory': memory}
+        # Получение информации о ноде
+        node = v1.read_node(name=node_name)
 
-    except client.ApiException as e:
-        print(f"Exception when calling CoreV1Api->read_namespaced_pod: {e}")
+        # Извлечение ресурсов CPU и памяти
+        capacity = node.status.capacity
+        cpu_capacity = capacity.get('cpu', 'N/A')
+        memory_capacity = capacity.get('memory', 'N/A')
+
+        # Извлечение ресурсов, используемых в данный момент
+        usage = node.status.allocatable
+        cpu_usage = usage.get('cpu', 'N/A')
+        memory_usage = usage.get('memory', 'N/A')
+
+        return {'cpu_capacity': cpu_capacity, 'memory_capacity': memory_capacity,
+                'cpu_usage': cpu_usage, 'memory_usage': memory_usage}
+
+    except Exception as e:
+        print(f"Exception: {e}")
         return None
 
-
 if __name__ == '__main__':
-    namespace = 'default'  # Замените на нужное вам пространство имен (namespace)
-    pod_name = 'worker1'  # Замените на имя вашего пода
+    node_name = 'worker1'  # Замените на имя вашей ноды
 
-    resources = get_pod_resources(namespace, pod_name)
-    if resources:
-        print(f"Ресурсы для пода {pod_name} в пространстве имен {namespace}:")
-        print(f"CPU: {resources['cpu']}")
-        print(f"Memory: {resources['memory']}")
+    node_resources = get_node_resources(node_name)
+    if node_resources:
+        print(f"Ресурсы на ноде {node_name}:")
+        print(f"CPU Capacity: {node_resources['cpu_capacity']}")
+        print(f"Memory Capacity: {node_resources['memory_capacity']}")
+        print(f"CPU Usage: {node_resources['cpu_usage']}")
+        print(f"Memory Usage: {node_resources['memory_usage']}")
